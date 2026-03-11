@@ -38,6 +38,17 @@
 ### Installation & Setup
 
 1. **Clone the repository:**
-   ```bash
+ 
    git clone [https://github.com/YOUR-USERNAME/Stegovault.git](https://github.com/YOUR-USERNAME/Stegovault.git)
    cd Stegovault
+   
+Switch to the development branch:
+git checkout dev
+
+Install Flutter dependencies:
+flutter pub get
+
+Run the application:
+flutter run
+
+Developed as a Mobile Application Development (MAD) Project.
