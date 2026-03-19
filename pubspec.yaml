@@ -33,6 +33,7 @@ dependencies:
       sdk: flutter
     image_picker: ^1.0.7  # Add this line
     cupertino_icons: ^1.0.8
+    image: ^4.1.4  # Add this! It does the heavy lifting for pixel manipulation.
 
 dev_dependencies:
   flutter_test:
