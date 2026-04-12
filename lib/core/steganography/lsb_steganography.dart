@@ -38,5 +38,5 @@ void main() {
   List<int> encoded = LSBSteganography.encode(image, message);
 
   String decoded = LSBSteganography.decode(encoded, message.length);
-  print('Decoded message: ' + decoded);
+  print('Decoded message: $decoded');
 }
