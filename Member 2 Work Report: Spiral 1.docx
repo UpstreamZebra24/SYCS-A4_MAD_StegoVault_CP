@@ -1,0 +1,70 @@
+
+Member 2 Work Report: Spiral 1 – Core LSB Steganography Foundation
+Project: Stegovault
+Phase: Spiral 1 (Core Steganography Foundation)
+Role: Member 2 (Core LSB Developer)
+Framework: Flutter (Dart)
+
+1. Executive Summary
+As part of the Spiral 1 objectives, the foundational steganography logic has been successfully developed in Dart and pushed to the repository. The core objective of this phase—reliable hiding and extraction of basic plaintext within an image's Least Significant Bits (LSB)—has been achieved using native Dart pixel manipulation.
+
+At this stage, cryptography (AES-GCM) and Pseudo-Random Number Generation (PRNG) scattering have been intentionally omitted to isolate and validate the core LSB manipulation mechanics, adhering to the spiral development methodology.
+
+2. What Was Added & Where
+A standalone utility class was created to handle the pixel-level manipulation without relying on native Android/iOS bridging.
+
+File Created: lib/core/lsb_core.dart
+
+Dependencies: Added the image: ^4.1.4 package to pubspec.yaml to handle raw pixel data extraction and manipulation efficiently in Dart.
+
+3. Technical Implementation Details
+The LsbCore module contains two primary static methods built to integrate with the UI and File Handling modules:
+
+encodeText(img.Image image, String text): img.Image
+
+Logic: Takes an img.Image object and a plaintext string. Converts the text to UTF-8 bytes, flattens them into bits, and sequentially replaces the LSB of the Red, Green, and Blue color channels.
+
+Safety Mechanism: Appends a strict delimiter (##STEGO_END##) to the plaintext prior to encoding. This ensures the decoding function terminates accurately without reading garbage pixel data from the rest of the image.
+
+decodeText(img.Image stegoImage): String
+
+Logic: Iterates sequentially through the pixels of the encoded image, extracting the LSB from the RGB channels. Reconstructs the bits into bytes and decodes them via UTF-8.
+
+Termination: Continuously checks the reconstructed string for the ##STEGO_END## delimiter. Upon detection, it strips the delimiter and returns the pristine original message.
+
+4. API Contract (For Member 4 - Integration Lead)
+To hook this up to the UI, Member 4 will call the static methods directly.
+
+Encoding Example:
+
+Dart
+import 'package:stegovault/core/lsb_core.dart';
+import 'package:image/image.dart' as img;
+
+// Load image via Member 3's file handler
+img.Image originalImage = img.decodeImage(fileBytes)!; 
+String secretMessage = "Meeting at 0900.";
+
+// Execute LSB encoding
+img.Image stegoImage = LsbCore.encodeText(originalImage, secretMessage);
+Decoding Example:
+
+Dart
+import 'package:stegovault/core/lsb_core.dart';
+import 'package:image/image.dart' as img;
+
+// Load stego-image via Member 3's file handler
+img.Image loadedStegoImage = img.decodeImage(stegoFileBytes)!;
+
+// Execute LSB decoding
+String extractedMessage = LsbCore.decodeText(loadedStegoImage);
+5. Handoff & Instructions for Member 3 (File Handling Specialist)
+To ensure the LsbCore logic works on physical devices, the File Handling module must adhere to the following constraints:
+
+Strict Lossless Export (CRITICAL): * When saving the img.Image returned by encodeText, you must export it using img.encodePng(stegoImage).
+
+Do not use JPEG. JPEG applies lossy compression that alters pixel data, which will instantly destroy the hidden LSB bits.
+
+Isolate Processing (Performance):
+
+Pixel manipulation is CPU-intensive. When Member 4 wires up the UI, ensure that decodeImage, encodePng, and the calls to LsbCore are wrapped in Dart Isolate.run() or compute(). If run on the main thread, the Flutter UI will freeze during processing.
