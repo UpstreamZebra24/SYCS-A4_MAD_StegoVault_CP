@@ -1,54 +1,46 @@
 # 🔐 Stegovault
 
-**Stegovault** is a secure, fully offline mobile application built with Flutter that conceals encrypted text messages within image files. It combines authenticated cryptography (AES-GCM) with advanced, randomized steganography (LSB manipulation) to ensure secure and undetectable communication.
+**Stegovault** is a professional-grade, high-security offline vault for concealing encrypted messages within image files using advanced **Bit-Scattering Steganography**.
 
-## 🚀 Core Features
+## 🚀 Key Features (Hardware Demonstration Ready)
 
-* **100% Offline Architecture:** Designed with zero network calls for encryption or key generation, ensuring maximum resistance to remote interception.
-* **Authenticated Cryptography:** Utilizes a Key Derivation Function (PBKDF2/Argon2) paired with **AES-GCM** to encrypt messages. This ensures payloads are not only hidden but mathematically protected against tampering.
-* **Randomized Steganography:** Employs Pseudo-Random Number Generation (PRNG) seeded by the encryption key to scatter message bits across the image's Least Significant Bits (LSB), preventing visual or statistical detection.
-* **Smart Capacity Validation:** Automatically calculates the maximum payload size of the selected image before encoding to prevent data loss or application crashes.
-* **Lossless Export:** Strictly enforces PNG/BMP image exports to guarantee the hidden payload survives local transfer without being destroyed by compression.
-* **Hardware-Backed Security:** Integrates local biometric authentication (Fingerprint/FaceID) and the device's Secure Enclave/Keystore to safely manage the offline password.
+*   **Entropy-Based Bit Scattering (Spiral 2):** Unlike traditional LSB which hides data in a straight line, Stegovault uses a **Multiplicative Hash Permutation (LCG)** to scatter bits across the entire image like random noise.
+*   **Visual Scattering Heatmap:** A unique "Hub" feature allows users to visualize exactly where their data is hidden based on their specific passphrase's entropy.
+*   **Authenticated AES-256-GCM:** Every message is encrypted with industry-standard AES-GCM and PBKDF2 key derivation before being hidden.
+*   **Passive Clipboard Guardian:** To prevent data theft or accidental leaks, the app automatically wipes the system clipboard 60 seconds after a successful decode.
+*   **Lossless PNG Engine:** Optimized image processing (uint8, 3-channel) ensures that no data is lost during the encoding or saving process.
+*   **Modern "Security Vault" UI:** A premium, minimalist interface designed for clarity and ease of use during physical device demonstrations.
+*   **Isolate-Driven Performance:** Heavy image processing is offloaded to background threads (Flutter Isolates) to ensure a smooth, 60 FPS user experience.
 
 ## 🛠️ Tech Stack
 
-* **Framework:** [Flutter](https://flutter.dev/) (Dart)
-* **Target Platforms:** Android & iOS (Cross-platform)
-* **Cryptography:** `encrypt`, `pointycastle` packages
-* **Image Processing:** `image` package (Native Dart pixel manipulation)
-* **Local Security:** `flutter_secure_storage`, `local_auth`
+*   **Framework:** Flutter (3.24.x)
+*   **Pixel Manipulation:** `image` (Native Dart)
+*   **Cryptography:** `encrypt`, `pointycastle`
+*   **Security:** `flutter_secure_storage`, `local_auth`
+*   **Media:** `image_picker`
 
-## 🧠 System Workflow
+## 🧠 Technical Highlights
 
-1. **Unlock:** User authenticates via Biometrics.
-2. **Key Generation:** Offline password is fed into a KDF to derive a 256-bit key.
-3. **Encrypt:** Plaintext message is encrypted via AES-GCM.
-4. **Evaluate:** App validates if the selected image has sufficient capacity for the ciphertext.
-5. **Encode:** Ciphertext is randomly scattered into the image's LSB.
-6. **Export:** A lossless `Stego-Image.png` is generated for the user to securely transmit.
+1.  **Bit Scattering Logic:** `(index * PRIME + SEED) % TOTAL_PIXELS`. This ensures every pixel is visited exactly once in a pseudo-random order.
+2.  **LSB Implementation:** Modifies only the 0th bit of the Red, Green, and Blue channels for maximum stealth.
+3.  **Secure Cleanup:** Active monitoring of the clipboard for 60 seconds post-decode to auto-wipe sensitive plaintexts.
 
-## 🏁 Getting Started (For Developers)
+## 🏁 Installation
 
-### Prerequisites
-* [Flutter SDK](https://docs.flutter.dev/get-started/install) installed.
-* [Android Studio](https://developer.android.com/studio) or VS Code with the Flutter extension.
-* An Android Emulator or physical device for testing.
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/Adity/SYCS-A4_MAD_StegoVault_CP.git
+    cd SYCS-A4_MAD_StegoVault_CP
+    ```
+2.  **Get dependencies:**
+    ```bash
+    flutter pub get
+    ```
+3.  **Run on Device:**
+    ```bash
+    flutter run --release
+    ```
 
-### Installation & Setup
-
-1. **Clone the repository:**
- 
-   git clone [https://github.com/YOUR-USERNAME/Stegovault.git](https://github.com/YOUR-USERNAME/Stegovault.git)
-   cd Stegovault
-   
-Switch to the development branch:
-git checkout dev
-
-Install Flutter dependencies:
-flutter pub get
-
-Run the application:
-flutter run
-
-Developed as a Mobile Application Development (MAD) Project.
+---
+**Developed for the MAD (Mobile Application Development) Practical Demonstration.**

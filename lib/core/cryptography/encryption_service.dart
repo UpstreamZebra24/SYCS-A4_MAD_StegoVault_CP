@@ -20,7 +20,7 @@ class EncryptionService {
     await _storage.write(key: 'encryption_key', value: base64.encode(key));
 
     // Return the ciphertext along with the IV
-    return base64.encode(iv) + ':' + base64.encode(ciphertext);
+    return '${base64.encode(iv)}:${base64.encode(ciphertext)}';
   }
 
   Future<String?> decrypt(String encrypted) async {
