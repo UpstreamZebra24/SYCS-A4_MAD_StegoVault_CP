@@ -54,7 +54,7 @@ StegoVault strictly utilizes the PNG format for output. Users must not convert t
 
 - **"No Secret Message Found":** This occurs if the wrong passphrase is used, if the image has been compressed by a messaging app (like WhatsApp), or if the image was converted to JPEG.
 - **"Capacity Exceeded":** The secret message is too large for the selected image's dimensions. Select a higher-resolution carrier image or shorten the message.
-- **"Biometric Failure":** Ensure the sensor is clean. If biometrics fail repeatedly, use the Master Password fallback option.
+- **"Biometric Failure Check":** Ensure the sensor is clean. If biometrics fail repeatedly, use the Master Password fallback option.
 
 ---
 **End of Manual**
