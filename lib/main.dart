@@ -73,23 +73,23 @@ class _LockScreenState extends State<LockScreen> {
   Future<void> _handleUnlock() async {
     setState(() => _isAuthenticating = true);
     final bool authenticated = await AuthService.authenticate();
+    if (!mounted) return;
     setState(() => _isAuthenticating = false);
 
     if (authenticated) {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-      }
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
     }
   }
 
   // Set or Verify Master Password
   Future<void> _setupMasterPassword() async {
     final existing = await SecureStorageService.getMasterPassword();
+    if (!mounted) return;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(existing == null ? 'Initialize Your Vault' : 'Vault Credentials'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -104,12 +104,14 @@ class _LockScreenState extends State<LockScreen> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
           FilledButton(
             onPressed: () async {
               if (_masterPassController.text.isNotEmpty) {
                 await SecureStorageService.saveMasterPassword(_masterPassController.text);
-                if (mounted) Navigator.pop(context);
+                if (!dialogContext.mounted) return;
+                Navigator.pop(dialogContext);
+                if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vault Identity Secured!')));
               }
             },
@@ -247,7 +249,7 @@ class _HomeCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 5)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 5)),
         ],
       ),
       child: Material(
@@ -262,7 +264,7 @@ class _HomeCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.4),
+                    color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(icon, size: 32, color: Theme.of(context).colorScheme.primary),
@@ -319,6 +321,7 @@ class _EncodeScreenState extends State<EncodeScreen> {
       final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
         final bytes = await pickedFile.readAsBytes();
+        if (!mounted) return;
         debugPrint("Image bytes read: ${bytes.length}");
         
         // Use the image package to decode
@@ -336,7 +339,9 @@ class _EncodeScreenState extends State<EncodeScreen> {
       }
     } catch (e) {
       debugPrint("StegoVault Error picking image: $e");
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading image: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading image: $e')));
+      }
     }
   }
 
@@ -439,6 +444,7 @@ class _EncodeScreenState extends State<EncodeScreen> {
   Future<void> _handleEncode() async {
     setState(() => _isProcessing = true);
     final path = await _stegoService.encode(_messageController.text, _image!.path, passphrase: _passphraseController.text);
+    if (!mounted) return;
     setState(() => _isProcessing = false);
     if (path != null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved to Downloads/stego_image.png')));
@@ -458,7 +464,7 @@ class _EncodeScreenState extends State<EncodeScreen> {
     if (heatmapBytes != null && mounted) {
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
+        builder: (dialogContext) => AlertDialog(
           title: const Text('Bit Scattering Map'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -468,7 +474,7 @@ class _EncodeScreenState extends State<EncodeScreen> {
               Image.memory(heatmapBytes, fit: BoxFit.contain, height: 300),
             ],
           ),
-          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))],
+          actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Close'))],
         ),
       );
     }
@@ -510,6 +516,7 @@ class _DecodeScreenState extends State<DecodeScreen> {
                 final file = await _picker.pickImage(source: ImageSource.gallery);
                 if (file != null) {
                   final bytes = await file.readAsBytes();
+                  if (!mounted) return;
                   setState(() {
                     _lastPickedPath = file.path;
                     _imageBytes = bytes;
@@ -555,27 +562,23 @@ class _DecodeScreenState extends State<DecodeScreen> {
     
     final result = await _stegoService.decode(_lastPickedPath!, passphrase: _passphraseController.text);
     
-    if (mounted) {
-      setState(() { 
-        _isProcessing = false; 
-        _decodedMessage = result ?? "Authentication Failed: Incorrect passphrase or corrupted image."; 
-      });
-    }
+    if (!mounted) return;
+
+    setState(() { 
+      _isProcessing = false; 
+      _decodedMessage = result ?? "Authentication Failed: Incorrect passphrase or corrupted image."; 
+    });
 
     // Security: Passive Clipboard Guardian
-    // Even if the user manually tries to screenshot or copy via system overlays,
-    // we clear the clipboard after 60 seconds to prevent "theft" or leaks.
     if (result != null && result.isNotEmpty) {
       Timer(const Duration(seconds: 60), () async {
         final data = await Clipboard.getData(Clipboard.kTextPlain);
-        // If the current clipboard matches the secret we just decoded, wipe it.
         if (data?.text == result) {
           await Clipboard.setData(const ClipboardData(text: ""));
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Security: Clipboard wiped to protect your data.'))
-            );
-          }
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Security: Clipboard wiped to protect your data.'))
+          );
         }
       });
     }
@@ -595,7 +598,7 @@ class _ImagePreview extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: bytes == null 
